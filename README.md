@@ -1,6 +1,4 @@
-# 📚 Simulado para Concursos - README
-
-![Banner](https://via.placeholder.com/1200x400/4361ee/ffffff?text=Simulado+para+Concursos) *(Adicione um banner real posteriormente)*
+# 📚 Simulado para Concursos
 
 ## ✨ Visão Geral
 
@@ -38,7 +36,7 @@ O **Simulado para Concursos** é uma aplicação web desenvolvida para ajudar ca
 ### Instalação
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/simulado-concursos.git
+   git clone https://github.com/dario-gms/simulado-web
    ```
 2. Configure o banco de dados:
    - Importe o arquivo `database/migrations.sql` no phpMyAdmin
@@ -55,24 +53,40 @@ O **Simulado para Concursos** é uma aplicação web desenvolvida para ajudar ca
 
 ```
 simulado/
-├── public/               # Arquivos acessíveis publicamente
-│   ├── css/              # Folhas de estilo
-│   ├── js/               # Scripts JavaScript
-│   ├── api.php           # Endpoint da API
-│   └── index.php         # Página inicial
+├── public/
+│   ├── css/
+│   │   └── style.css
+│   ├── js/
+│   │   ├── main.js
+│   │   ├── simulado.js
+│   │   └── add_question.js
+│   ├── index.php
+│   ├── api.php
+│   ├── simulado.php
+│   ├── resultado.php
+│   ├── manage_areas.php
+│   └── add_question.php
 ├── src/
-│   ├── config/           # Configurações
-│   ├── controllers/      # Controladores
-│   ├── models/           # Modelos de dados
-│   └── database/         # Migrações do banco
-├── vendor/               # Dependências (se houver)
-└── .htaccess             # Configurações do Apache
+│   ├── config/
+│   │   └── database.php
+│   ├── controllers/
+│   │   ├── QuestionController.php
+│   │   ├── AreaController.php
+│   │   └── SimuladoController.php
+│   ├── models/
+│   │   ├── Question.php
+│   │   ├── Option.php
+│   │   └── Area.php
+│   └── database/
+│       └── migrations.sql
+├── vendor/
+└── .htaccess
 ```
 
 ## 📋 Funcionalidades Principais
 
 ### Áreas de Conhecimento
-- 📂 Criação e gerenciamento de áreas
+- 📂 Criação e gerenciamento de áreas de estudo
 - 🗂 Organização hierárquica
 - 🔄 Atualização em tempo real
 
@@ -88,8 +102,7 @@ simulado/
 
 ### Resultados
 - 📈 Pontuação detalhada
-- ⏱ Tempo gasto por questão
-- 📋 Relatório de desempenho
+- ⏱ Tempo gasto
 
 ## 🎨 Design System
 
@@ -120,30 +133,22 @@ simulado/
 
 Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
-## ✉️ Contato
-
-Seu Nome - [@seu_twitter](https://twitter.com/seu_twitter) - seuemail@exemplo.com
-
-Link do Projeto: [https://github.com/seu-usuario/simulado-concursos](https://github.com/seu-usuario/simulado-concursos)
-
 ---
 
 <div align="center">
-  <sub>Criado com ❤︎ por <a href="https://github.com/seu-usuario">seu nome</a></sub>
+  <sub>Criado com ❤︎ por <a href="https://github.com/dario-gms">Dário Gomes</a></sub>
 </div>
 
 ## 🎉 Screenshots
 
-*(Adicione screenshots reais do seu projeto aqui)*
-
 1. **Página Inicial**  
-   ![Página Inicial](https://via.placeholder.com/600x400?text=P%C3%A1gina+Inicial)
+ ![image](https://github.com/user-attachments/assets/c84f8b62-ae26-4782-8e3d-a17bdf418c75)
 
 2. **Adicionar Questão**  
-   ![Adicionar Questão](https://via.placeholder.com/600x400?text=Adicionar+Quest%C3%A3o)
+  ![image](https://github.com/user-attachments/assets/df025ee2-0820-40c5-8ece-dc5e2098032f)
 
 3. **Simulado em Andamento**  
-   ![Simulado](https://via.placeholder.com/600x400?text=Simulado+em+Andamento)
+   ![image](https://github.com/user-attachments/assets/4d731018-47a1-470b-a16e-b44a14b5b5fe)
 
 ## 🔧 Troubleshooting
 
@@ -157,7 +162,3 @@ Link do Projeto: [https://github.com/seu-usuario/simulado-concursos](https://git
 
 3. **Ícones não aparecendo**  
    Verifique se o caminho para os arquivos SVG está correto
-
----
-
-Este README foi cuidadosamente elaborado para proporcionar uma visão completa do projeto. Atualize os links, imagens e informações de contato conforme necessário para refletir seu projeto real.
