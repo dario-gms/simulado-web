@@ -1,0 +1,12 @@
+RewriteEngine On
+RewriteBase /simulado/public/
+
+# Permitir acesso direto a arquivos existentes
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirecionamento para API
+RewriteRule ^api\.php$ - [L]
+
+# Redirecionar tudo para index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
