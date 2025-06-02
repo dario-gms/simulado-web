@@ -8,6 +8,16 @@ if (empty($_SESSION['simulado_result'])) {
 
 $result = $_SESSION['simulado_result'];
 unset($_SESSION['simulado_result']);
+
+require_once __DIR__ . '/../src/controllers/AreaController.php';
+$areaController = new AreaController();
+$allAreas = $areaController->getAll();
+
+// Mapear IDs de áreas para nomes
+$areaNames = [];
+foreach ($allAreas as $area) {
+    $areaNames[$area['id']] = $area['nome'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -37,8 +47,24 @@ unset($_SESSION['simulado_result']);
             </div>
         </div>
 
+        <div class="result-details">
+            <h3>Desempenho por Área</h3>
+            <div class="area-stats">
+                <?php foreach ($result['area_stats'] as $areaId => $stats): ?>
+                <div class="area-stat-card">
+                    <h4><?= htmlspecialchars($areaNames[$areaId] ?? 'Área Desconhecida') ?></h4>
+                    <div class="stat-score">
+                        <?= $stats['correct'] ?>/<?= $stats['total'] ?>
+                        (<?= round(($stats['correct'] / $stats['total']) * 100) ?>%)
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
         <div class="actions">
-            <a href="index.php" class="btn btn-primary">Voltar ao Início</a>
+            <a href="profile.php" class="btn btn-primary">Ver Meu Histórico</a>
+            <a href="profile.php" class="btn btn-secondary">Novo Simulado</a>
         </div>
     </div>
 </body>

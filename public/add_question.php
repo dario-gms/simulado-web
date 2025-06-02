@@ -1,5 +1,11 @@
 <?php
+session_start();
+if (empty($_SESSION['user']) || empty($_SESSION['user']['is_admin'])) {
+    header("Location: ../login.php");
+    exit;
+}
 require_once __DIR__ . '/../src/controllers/AreaController.php';
+require_once __DIR__ . '/partials/menu.php';
 
 $areaController = new AreaController();
 $areas = $areaController->getAll();
@@ -12,6 +18,7 @@ $areas = $areaController->getAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adicionar Questão</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -22,31 +29,41 @@ $areas = $areaController->getAll();
             
             <div class="form-group">
                 <label for="enunciado">Enunciado:</label>
-                <textarea id="enunciado" name="enunciado" required></textarea>
+                <textarea id="enunciado" name="enunciado" required rows="5"></textarea>
             </div>
             
             <div class="form-group">
                 <label>Opções:</label>
                 <div class="options-container">
-                    <div class="option-input">
-                        <label>A)</label>
-                        <input type="text" name="opcoes[A]" class="option-text" required>
+                    <div class="option-item">
+                        <div class="option-header">
+                            <span class="option-letter">A)</span>
+                        </div>
+                        <textarea name="opcoes[A]" class="option-text" required rows="3"></textarea>
                     </div>
-                    <div class="option-input">
-                        <label>B)</label>
-                        <input type="text" name="opcoes[B]" class="option-text" required>
+                    <div class="option-item">
+                        <div class="option-header">
+                            <span class="option-letter">B)</span>
+                        </div>
+                        <textarea name="opcoes[B]" class="option-text" required rows="3"></textarea>
                     </div>
-                    <div class="option-input">
-                        <label>C)</label>
-                        <input type="text" name="opcoes[C]" class="option-text" required>
+                    <div class="option-item">
+                        <div class="option-header">
+                            <span class="option-letter">C)</span>
+                        </div>
+                        <textarea name="opcoes[C]" class="option-text" required rows="3"></textarea>
                     </div>
-                    <div class="option-input">
-                        <label>D)</label>
-                        <input type="text" name="opcoes[D]" class="option-text" required>
+                    <div class="option-item">
+                        <div class="option-header">
+                            <span class="option-letter">D)</span>
+                        </div>
+                        <textarea name="opcoes[D]" class="option-text" required rows="3"></textarea>
                     </div>
-                    <div class="option-input">
-                        <label>E)</label>
-                        <input type="text" name="opcoes[E]" class="option-text" required>
+                    <div class="option-item">
+                        <div class="option-header">
+                            <span class="option-letter">E)</span>
+                        </div>
+                        <textarea name="opcoes[E]" class="option-text" required rows="3"></textarea>
                     </div>
                 </div>
             </div>
@@ -73,9 +90,13 @@ $areas = $areaController->getAll();
                 </select>
             </div>
             
-            <div class="buttons">
-                <button type="button" id="backBtn" class="btn btn-secondary">Voltar</button>
-                <button type="submit" class="btn btn-primary">Adicionar Questão</button>
+            <div class="form-actions">
+                <button type="button" id="backBtn" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Adicionar Questão
+                </button>
             </div>
         </form>
     </div>

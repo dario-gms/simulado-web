@@ -6,35 +6,49 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         try {
-            // Coletar dados do formul·rio de forma segura
+            // Coletar dados do formul√°rio
             const formData = {
                 action: 'add_question',
                 enunciado: document.getElementById('enunciado').value.trim(),
                 opcoes: {
-                    A: document.querySelector('input[name="opcoes[A]"]').value.trim(),
-                    B: document.querySelector('input[name="opcoes[B]"]').value.trim(),
-                    C: document.querySelector('input[name="opcoes[C]"]').value.trim(),
-                    D: document.querySelector('input[name="opcoes[D]"]').value.trim(),
-                    E: document.querySelector('input[name="opcoes[E]"]').value.trim()
+                    A: document.querySelector('textarea[name="opcoes[A]"]').value.trim(),
+                    B: document.querySelector('textarea[name="opcoes[B]"]').value.trim(),
+                    C: document.querySelector('textarea[name="opcoes[C]"]').value.trim(),
+                    D: document.querySelector('textarea[name="opcoes[D]"]').value.trim(),
+                    E: document.querySelector('textarea[name="opcoes[E]"]').value.trim()
                 },
                 resposta_correta: document.getElementById('correctAnswer').value,
                 area_id: document.getElementById('area').value
             };
 
-            // Validar campos obrigatÛrios
-            if (!formData.enunciado || !formData.resposta_correta || !formData.area_id) {
-                throw new Error('Preencha todos os campos obrigatÛrios');
+            // Validar campos obrigat√≥rios
+            if (!formData.enunciado) {
+                throw new Error('O enunciado √© obrigat√≥rio');
             }
 
-            // Validar opÁıes
+            if (!formData.resposta_correta) {
+                throw new Error('Selecione a resposta correta');
+            }
+
+            if (!formData.area_id) {
+                throw new Error('Selecione a √°rea de conhecimento');
+            }
+
+            // Validar op√ß√µes
             for (const [key, value] of Object.entries(formData.opcoes)) {
                 if (!value) {
-                    throw new Error(`Preencha a opÁ„o ${key}`);
+                    throw new Error(`A op√ß√£o ${key} est√° vazia`);
                 }
             }
 
+            // Mostrar loading
+            const submitBtn = questionForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            submitBtn.disabled = true;
+
             // Enviar para a API
-            const response = await fetch('http://localhost/simulado/public/api.php', {
+            const response = await fetch('api.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -45,14 +59,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (!response.ok || !result.success) {
-                throw new Error(result.message || 'Erro ao adicionar quest„o');
+                throw new Error(result.message || 'Erro ao adicionar quest√£o');
             }
 
-            alert('Quest„o adicionada com sucesso!');
+            // Sucesso
+            alert('Quest√£o adicionada com sucesso!');
             questionForm.reset();
+
         } catch (error) {
             console.error('Erro:', error);
-            alert('Falha ao adicionar: ' + error.message);
+            alert('Erro: ' + error.message);
+        } finally {
+            // Restaurar bot√£o
+            const submitBtn = questionForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Adicionar Quest√£o';
+                submitBtn.disabled = false;
+            }
         }
     });
 
