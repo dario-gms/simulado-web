@@ -5,6 +5,9 @@ RewriteBase /simulado/public/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
+# Permitir acesso a partials e arquivos estáticos
+RewriteRule ^(partials/|css/|js/|images/) - [L]
+
 # Redirecionamento para API
 RewriteRule ^api\.php$ - [L]
 

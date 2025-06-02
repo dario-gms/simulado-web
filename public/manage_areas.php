@@ -1,5 +1,11 @@
 <?php
+session_start();
+if (empty($_SESSION['user']) || empty($_SESSION['user']['is_admin'])) {
+    header("Location: ../login.php");
+    exit;
+}
 require_once __DIR__ . '/../src/controllers/AreaController.php';
+require_once __DIR__ . '/partials/menu.php';
 
 $areaController = new AreaController();
 $areas = $areaController->getAll();
@@ -38,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciar Áreas</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
