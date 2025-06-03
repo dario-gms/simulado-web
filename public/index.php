@@ -21,7 +21,7 @@ $is_admin = !empty($_SESSION['user']['is_admin']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulado para Concursos</title>
+    <title>QuestLab</title>
     <link rel="stylesheet" href="<?= $base_url ?>css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,8 +32,8 @@ $is_admin = !empty($_SESSION['user']['is_admin']);
 
     <div class="container">
         <header class="hero">
-            <h1>Simulado para Concursos</h1>
-            <p>Teste seus conhecimentos e prepare-se para os melhores concursos públicos</p>
+            <h1>QuestLab</h1>
+            <p>Teste seus conhecimentos e prepare-se para todas as provas!</p>
         </header>
         
         <div class="card">
@@ -47,6 +47,12 @@ $is_admin = !empty($_SESSION['user']['is_admin']);
                         <label for="area-<?= $area['id'] ?>"><?= htmlspecialchars($area['nome']) ?></label>
                     </div>
                     <?php endforeach; ?>
+                </div>
+                
+                <!-- Seletor de modo disponível para todos os usuários -->
+                <div class="simulado-mode-selector">
+                    <button type="button" class="simulado-mode-btn active" data-mode="normal">Simulado Normal</button>
+                    <button type="button" class="simulado-mode-btn" data-mode="imediato">Respostas Imediatas</button>
                 </div>
                 
                 <div class="action-buttons">
@@ -116,6 +122,18 @@ $is_admin = !empty($_SESSION['user']['is_admin']);
         }
     });
     <?php endif; ?>
+
+    // Seletor de modo de simulado (para todos os usuários)
+    document.addEventListener('DOMContentLoaded', () => {
+        const modeButtons = document.querySelectorAll('.simulado-mode-btn');
+        
+        modeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+    });
     </script>
 </body>
 </html>

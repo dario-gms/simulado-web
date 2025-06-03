@@ -1,9 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     const questionForm = document.getElementById('questionForm');
     const backBtn = document.getElementById('backBtn');
+    const submitBtn = questionForm.querySelector('button[type="submit"]');
 
     questionForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Mostrar estado de carregamento
+        const originalBtnContent = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        submitBtn.disabled = true;
 
         try {
             // Coletar dados do formulário
@@ -18,10 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     E: document.querySelector('textarea[name="opcoes[E]"]').value.trim()
                 },
                 resposta_correta: document.getElementById('correctAnswer').value,
-                area_id: document.getElementById('area').value
+                area_id: document.getElementById('area').value,
+                explicacao: document.getElementById('explicacao').value.trim()
             };
 
-            // Validar campos obrigatórios
+            // Validação dos campos
             if (!formData.enunciado) {
                 throw new Error('O enunciado é obrigatório');
             }
@@ -35,17 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Validar opções
-            for (const [key, value] of Object.entries(formData.opcoes)) {
-                if (!value) {
-                    throw new Error(`A opção ${key} está vazia`);
+            for (const [letra, texto] of Object.entries(formData.opcoes)) {
+                if (!texto) {
+                    throw new Error(`A opção ${letra} está vazia`);
                 }
             }
-
-            // Mostrar loading
-            const submitBtn = questionForm.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            submitBtn.disabled = true;
 
             // Enviar para a API
             const response = await fetch('api.php', {
@@ -62,20 +63,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(result.message || 'Erro ao adicionar questão');
             }
 
-            // Sucesso
-            alert('Questão adicionada com sucesso!');
-            questionForm.reset();
+            // Feedback visual de sucesso
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Questão Adicionada!';
+            submitBtn.classList.add('btn-success');
+
+            // Resetar formulário após 1.5 segundos
+            setTimeout(() => {
+                questionForm.reset();
+                submitBtn.innerHTML = originalBtnContent;
+                submitBtn.classList.remove('btn-success');
+            }, 1500);
 
         } catch (error) {
             console.error('Erro:', error);
-            alert('Erro: ' + error.message);
+
+            // Feedback visual de erro
+            submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erro';
+            submitBtn.classList.add('btn-error');
+
+            // Mostrar mensagem de erro
+            const errorElement = document.createElement('div');
+            errorElement.className = 'error-message';
+            errorElement.textContent = error.message;
+
+            // Inserir após o botão
+            submitBtn.parentNode.insertBefore(errorElement, submitBtn.nextSibling);
+
+            // Restaurar botão após 3 segundos
+            setTimeout(() => {
+                submitBtn.innerHTML = originalBtnContent;
+                submitBtn.classList.remove('btn-error');
+                errorElement.remove();
+            }, 3000);
         } finally {
-            // Restaurar botão
-            const submitBtn = questionForm.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Adicionar Questão';
-                submitBtn.disabled = false;
-            }
+            // Garantir que o botão seja reativado
+            submitBtn.disabled = false;
         }
     });
 

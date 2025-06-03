@@ -15,37 +15,63 @@ class QuestionController {
         $this->optionModel = new Option($this->db);
     }
 
-    public function addQuestion($enunciado, $opcoes, $resposta_correta, $area_id) {
+    public function addQuestion($enunciado, $opcoes, $resposta_correta, $area_id, $explicacao = null) {
         try {
+            // Inicia transação
+            $this->db->beginTransaction();
+
+            // Validações
             if (empty($enunciado) || empty($opcoes) || empty($resposta_correta) || empty($area_id)) {
-                throw new Exception("Todos os campos são obrigatórios");
+                throw new Exception("Todos os campos obrigatórios devem ser preenchidos");
             }
 
+            if (!in_array($resposta_correta, ['A', 'B', 'C', 'D', 'E'])) {
+                throw new Exception("Resposta correta inválida");
+            }
+
+            // Configura a questão
             $this->questionModel->enunciado = $enunciado;
             $this->questionModel->resposta_correta = $resposta_correta;
             $this->questionModel->area_id = $area_id;
+            $this->questionModel->explicacao = $explicacao;
             
-            if ($this->questionModel->create()) {
-                foreach ($opcoes as $letra => $texto) {
-                    $this->optionModel->question_id = $this->questionModel->id;
-                    $this->optionModel->letra = $letra;
-                    $this->optionModel->texto = $texto;
-                    
-                    if (!$this->optionModel->create()) {
-                        throw new Exception("Falha ao criar opção {$letra}");
-                    }
-                }
-                return true;
+            // Cria a questão principal
+            if (!$this->questionModel->create()) {
+                throw new Exception("Falha ao criar a questão no banco de dados");
             }
-            return false;
+
+            // Cria as opções
+            foreach ($opcoes as $letra => $texto) {
+                $this->optionModel->question_id = $this->questionModel->id;
+                $this->optionModel->letra = $letra;
+                $this->optionModel->texto = $texto;
+                
+                if (!$this->optionModel->create()) {
+                    throw new Exception("Falha ao criar a opção {$letra}");
+                }
+            }
+
+            // Commit da transação
+            $this->db->commit();
+            return true;
+
         } catch (Exception $e) {
-            error_log("Erro ao adicionar questão: " . $e->getMessage());
-            return false;
+            // Rollback em caso de erro
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            
+            error_log("Erro no QuestionController: " . $e->getMessage());
+            throw $e; // Re-lança a exceção para ser tratada pelo chamador
         }
     }
 
     public function getQuestionsByAreas($area_ids) {
         try {
+            if (empty($area_ids)) {
+                throw new Exception("Nenhuma área especificada");
+            }
+
             $stmt = $this->questionModel->getByAreas($area_ids);
             $questions = [];
             
@@ -58,23 +84,44 @@ class QuestionController {
             
             return $questions;
         } catch (Exception $e) {
-            error_log("Erro ao buscar questões: " . $e->getMessage());
-            return [];
+            error_log("Erro ao buscar questões por área: " . $e->getMessage());
+            throw $e;
         }
     }
 
     public function getQuestionById($id) {
         try {
-            $question = $this->questionModel->getById($id);
-            if ($question) {
-                $optionsStmt = $this->optionModel->getByQuestion($id);
-                $question['opcoes'] = $optionsStmt->fetchAll(PDO::FETCH_ASSOC);
+            if (empty($id)) {
+                throw new Exception("ID da questão não fornecido");
             }
+
+            $question = $this->questionModel->getById($id);
+            
+            if (!$question) {
+                throw new Exception("Questão não encontrada");
+            }
+
+            $optionsStmt = $this->optionModel->getByQuestion($id);
+            $question['opcoes'] = $optionsStmt->fetchAll(PDO::FETCH_ASSOC);
+            
             return $question;
         } catch (Exception $e) {
-            error_log("Erro ao buscar questão: " . $e->getMessage());
-            return null;
+            error_log("Erro ao buscar questão por ID: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getQuestionsCount() {
+        try {
+            $query = "SELECT COUNT(*) as count FROM questions";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
+            
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['count'] ?? 0;
+        } catch (Exception $e) {
+            error_log("Erro ao contar questões: " . $e->getMessage());
+            return 0;
         }
     }
 }
-?>

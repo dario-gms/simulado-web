@@ -89,6 +89,11 @@ $areas = $areaController->getAll();
                     <?php endforeach; ?>
                 </select>
             </div>
+
+            <div class="form-group">
+                <label for="explicacao">Explicação da Resposta (Opcional):</label>
+                <textarea id="explicacao" name="explicacao" rows="5"></textarea>
+            </div>
             
             <div class="form-actions">
                 <button type="button" id="backBtn" class="btn btn-secondary">

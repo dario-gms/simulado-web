@@ -110,7 +110,8 @@ try {
                 $input['enunciado'],
                 $input['opcoes'],
                 $input['resposta_correta'],
-                $input['area_id']
+                $input['area_id'],
+                $input['explicacao'] ?? null
             );
 
             echo jsonResponse($result, $result ? 'Questão adicionada!' : 'Erro ao adicionar questão');
@@ -121,6 +122,9 @@ try {
                 echo jsonResponse(false, 'Selecione pelo menos uma área');
                 exit;
             }
+
+            // Verifica se é modo imediato
+            $immediate_mode = isset($input['immediate_mode']) ? (bool)$input['immediate_mode'] : false;
 
             $simuladoController = new SimuladoController();
             $questions = $simuladoController->iniciarSimulado($input['areas']);
@@ -135,11 +139,13 @@ try {
                 'current_index' => 0,
                 'answers' => [],
                 'start_time' => time(),
-                'selected_areas' => $input['areas']
+                'selected_areas' => $input['areas'],
+                'immediate_mode' => $immediate_mode
             ];
 
             echo jsonResponse(true, 'Simulado iniciado', [
-                'total_questions' => count($questions)
+                'total_questions' => count($questions),
+                'immediate_mode' => $immediate_mode
             ]);
             break;
 

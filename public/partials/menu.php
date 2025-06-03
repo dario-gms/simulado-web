@@ -9,7 +9,7 @@ $is_admin = !empty($_SESSION['user']['is_admin']);
         <!-- Logo/Marca -->
         <a href="<?= $base_url ?>index.php" class="menu-brand">
             <i class="menu-brand-icon fas fa-graduation-cap"></i>
-            <span>Simulado Concursos</span>
+            <span>QuestLab</span>
         </a>
         
         <!-- Botão Mobile -->

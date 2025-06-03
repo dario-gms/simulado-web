@@ -9,6 +9,7 @@ class Question {
     public $area_id;
     public $data_cadastro;
     public $opcoes = [];
+    public $explicacao;
 
     public function __construct($db) {
         $this->conn = $db;
@@ -18,12 +19,14 @@ class Question {
         $query = "INSERT INTO " . $this->table . " 
                  SET enunciado = :enunciado, 
                      resposta_correta = :resposta_correta, 
-                     area_id = :area_id";
+                     area_id = :area_id,
+                     explicacao = :explicacao";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":enunciado", $this->enunciado);
         $stmt->bindParam(":resposta_correta", $this->resposta_correta);
         $stmt->bindParam(":area_id", $this->area_id);
+        $stmt->bindParam(":explicacao", $this->explicacao);
         
         if($stmt->execute()) {
             $this->id = $this->conn->lastInsertId();
