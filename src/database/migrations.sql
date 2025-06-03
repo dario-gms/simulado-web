@@ -85,3 +85,5 @@ CREATE TABLE simulado_area_stats (
     FOREIGN KEY (simulado_id) REFERENCES simulado_results(id) ON DELETE CASCADE,
     FOREIGN KEY (area_id) REFERENCES areas(id)
 );
+
+ALTER TABLE questions ADD COLUMN explicacao TEXT DEFAULT NULL;

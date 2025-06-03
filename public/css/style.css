@@ -176,6 +176,44 @@ img {
         box-shadow: var(--box-shadow-hover);
     }
 
+.btn-finish {
+    background-color: var(--danger-color);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+    .btn-finish:hover {
+        background-color: #e5177b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-finish:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Ícone opcional (se quiser adicionar) */
+    .btn-finish i {
+        font-size: 1.1rem;
+    }
+
+    /* Efeito de loading (consistente com outros botões) */
+    .btn-finish.btn-loading::after {
+        border-top-color: white;
+    }
+
 /* Listas de Áreas/Opções */
 .list-container {
     margin: var(--spacing-md) 0;
@@ -710,5 +748,83 @@ select {
     select:focus {
         border-color: var(--primary-color);
         outline: none;
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+/* Estilos para o modo de resposta imediata */
+.correct-answer {
+    background-color: #d4edda !important;
+    border-left: 4px solid #28a745 !important;
+}
+
+.wrong-answer {
+    background-color: #f8d7da !important;
+    border-left: 4px solid #dc3545 !important;
+}
+
+.show-correct-answer {
+    background-color: #d1ecf1 !important;
+    border-left: 4px solid #17a2b8 !important;
+}
+
+.explanation-container {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid var(--primary-color);
+}
+
+.explanation-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+/* Estilo para o seletor de modo de simulado */
+.simulado-mode-selector {
+    margin-bottom: 1.5rem;
+}
+
+.simulado-mode-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--primary-color);
+    background: white;
+    color: var(--primary-color);
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+    .simulado-mode-btn:first-child {
+        border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+    }
+
+    .simulado-mode-btn:last-child {
+        border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+    }
+
+    .simulado-mode-btn.active {
+        background: var(--primary-color);
+        color: white;
+    }
+
+
+#explicacao {
+    width: 50%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    height: 100px;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius-sm);
+    font-family: inherit;
+    resize: both;
+    min-height: 50px;
+    transition: var(--transition);
+}
+
+    #explicacao:focus {
+        outline: none;
+        border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
     }

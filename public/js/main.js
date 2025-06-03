@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const simuladoForm = document.getElementById('simuladoForm');
     const baseUrl = window.location.pathname.includes('/admin/') ? '../' : '';
 
+    // Elementos do seletor de modo (se existirem)
+    const modeSelector = document.querySelector('.simulado-mode-selector');
+    const modeButtons = document.querySelectorAll('.simulado-mode-btn');
+
     // Iniciar Simulado
     simuladoForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -15,6 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Verifica o modo ativo
+        const activeModeBtn = document.querySelector('.simulado-mode-btn.active');
+        const immediateMode = activeModeBtn && activeModeBtn.dataset.mode === 'imediato';
+
         try {
             const submitBtn = simuladoForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
@@ -27,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     action: 'start_simulado',
-                    areas: areas
+                    areas: areas,
+                    immediate_mode: immediateMode
                 })
             });
 
@@ -37,7 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.message || 'Erro ao iniciar simulado');
             }
 
-            window.location.href = `${baseUrl}simulado.php?index=0`;
+            // Redireciona para a página correta baseada no modo
+            const targetPage = immediateMode ? 'simulado_imediato.php' : 'simulado.php';
+            window.location.href = `${baseUrl}${targetPage}?index=0`;
+
         } catch (error) {
             console.error('Erro:', error);
             alert(error.message);
@@ -49,7 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Verificar autenticação
+    // Lógica para o seletor de modo (se existir na página)
+    if (modeButtons.length > 0) {
+        modeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+    }
+
+    // Verificar autenticação (código permanece o mesmo)
     async function checkAuth() {
         try {
             const response = await fetch(`${baseUrl}api.php`, {
@@ -75,3 +97,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkAuth();
 });
+
+const modeButtons = document.querySelectorAll('.simulado-mode-btn');
+if (modeButtons.length > 0) {
+    modeButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            modeButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        });
+    });
+}
