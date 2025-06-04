@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../models/Question.php';
 require_once __DIR__ . '/../models/Option.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/ImageController.php';
 
 class QuestionController {
     private $db;
@@ -15,7 +16,7 @@ class QuestionController {
         $this->optionModel = new Option($this->db);
     }
 
-    public function addQuestion($enunciado, $opcoes, $resposta_correta, $area_id, $explicacao = null) {
+    public function addQuestion($enunciado, $opcoes, $resposta_correta, $area_id, $explicacao = null, $imagem = null) {
         try {
             // Inicia transação
             $this->db->beginTransaction();
@@ -38,6 +39,16 @@ class QuestionController {
             // Cria a questão principal
             if (!$this->questionModel->create()) {
                 throw new Exception("Falha ao criar a questão no banco de dados");
+            }
+            if ($imagem && $imagem['error'] === UPLOAD_ERR_OK) {
+                $imageController = new ImageController();
+                if ($imageController->processAndSaveImage($imagem, $this->questionModel->id)) {
+            // Atualizar flag de imagem
+                    $query = "UPDATE questions SET has_image = 1 WHERE id = :id";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':id', $this->questionModel->id);
+                    $stmt->execute();
+                }
             }
 
             // Cria as opções

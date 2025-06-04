@@ -13,3 +13,6 @@ RewriteRule ^api\.php$ - [L]
 
 # Redirecionar tudo para index.php
 RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Permitir acesso a get_image.php
+RewriteRule ^get_image\.php$ - [L]

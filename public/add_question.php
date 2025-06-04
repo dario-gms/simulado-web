@@ -24,12 +24,18 @@ $areas = $areaController->getAll();
     <div class="container">
         <h1>Adicionar Nova Questão</h1>
         
-        <form id="questionForm" action="api.php" method="POST">
+        <form id="questionForm" action="api.php" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="action" value="add_question">
             
             <div class="form-group">
                 <label for="enunciado">Enunciado:</label>
                 <textarea id="enunciado" name="enunciado" required rows="5"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="questionImage">Imagem (Opcional):</label>
+                <input type="file" id="questionImage" name="question_image" accept="image/*">
+                <small>Formatos suportados: JPG, PNG, etc. A imagem será convertida para WEBP.</small>
             </div>
             
             <div class="form-group">

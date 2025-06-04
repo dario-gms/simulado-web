@@ -104,14 +104,15 @@ try {
                     exit;
                 }
             }
-
+            $imagem = $_FILES['question_image'] ?? null;
             $questionController = new QuestionController();
             $result = $questionController->addQuestion(
                 $input['enunciado'],
                 $input['opcoes'],
                 $input['resposta_correta'],
                 $input['area_id'],
-                $input['explicacao'] ?? null
+                $input['explicacao'] ?? null,
+                $imagem
             );
 
             echo jsonResponse($result, $result ? 'Questão adicionada!' : 'Erro ao adicionar questão');

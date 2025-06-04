@@ -48,6 +48,14 @@ $startTime = $_SESSION['simulado']['start_time'] ?? time();
                     <?= nl2br(htmlspecialchars($currentQuestion['enunciado'])) ?>
                 </div>
                 
+                <?php if ($currentQuestion['has_image']): ?>
+                <div class="question-image">
+                    <img src="get_image.php?id=<?= $currentQuestion['id'] ?>" 
+                         alt="Imagem da questão" 
+                         style="max-width: 100%; max-height: 400px;">
+                </div>
+                <?php endif; ?>
+                
                 <div class="options">
                     <?php foreach ($currentQuestion['opcoes'] as $option): ?>
                     <div class="option" id="option_<?= $option['letra'] ?>">
@@ -62,7 +70,7 @@ $startTime = $_SESSION['simulado']['start_time'] ?? time();
                 </div>
 
                 <?php if (!empty($currentQuestion['explicacao'])): ?>
-                <div class="explanation-container" id="explanationContainer" style="display: none;"> <!-- Adicionei style="display: none;" aqui -->
+                <div class="explanation-container" id="explanationContainer" style="display: none;">
                     <div class="explanation-title">Explicação:</div>
                     <div class="explanation-text"><?= nl2br(htmlspecialchars($currentQuestion['explicacao'])) ?></div>
                 </div>

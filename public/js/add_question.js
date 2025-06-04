@@ -12,37 +12,36 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
 
         try {
-            // Coletar dados do formulário
-            const formData = {
-                action: 'add_question',
-                enunciado: document.getElementById('enunciado').value.trim(),
-                opcoes: {
-                    A: document.querySelector('textarea[name="opcoes[A]"]').value.trim(),
-                    B: document.querySelector('textarea[name="opcoes[B]"]').value.trim(),
-                    C: document.querySelector('textarea[name="opcoes[C]"]').value.trim(),
-                    D: document.querySelector('textarea[name="opcoes[D]"]').value.trim(),
-                    E: document.querySelector('textarea[name="opcoes[E]"]').value.trim()
-                },
-                resposta_correta: document.getElementById('correctAnswer').value,
-                area_id: document.getElementById('area').value,
-                explicacao: document.getElementById('explicacao').value.trim()
-            };
+            // Criar FormData a partir do formulário
+            const formData = new FormData(questionForm);
 
             // Validação dos campos
-            if (!formData.enunciado) {
+            const enunciado = formData.get('enunciado').trim();
+            const resposta_correta = formData.get('resposta_correta');
+            const area_id = formData.get('area_id');
+
+            if (!enunciado) {
                 throw new Error('O enunciado é obrigatório');
             }
 
-            if (!formData.resposta_correta) {
+            if (!resposta_correta) {
                 throw new Error('Selecione a resposta correta');
             }
 
-            if (!formData.area_id) {
+            if (!area_id) {
                 throw new Error('Selecione a área de conhecimento');
             }
 
             // Validar opções
-            for (const [letra, texto] of Object.entries(formData.opcoes)) {
+            const opcoes = {
+                A: formData.get('opcoes[A]').trim(),
+                B: formData.get('opcoes[B]').trim(),
+                C: formData.get('opcoes[C]').trim(),
+                D: formData.get('opcoes[D]').trim(),
+                E: formData.get('opcoes[E]').trim()
+            };
+
+            for (const [letra, texto] of Object.entries(opcoes)) {
                 if (!texto) {
                     throw new Error(`A opção ${letra} está vazia`);
                 }
@@ -51,10 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Enviar para a API
             const response = await fetch('api.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
+                body: formData // Usar FormData diretamente
             });
 
             const result = await response.json();
