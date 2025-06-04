@@ -40,24 +40,25 @@ class Question {
 
     public function getByAreas($area_ids) {
         $in = str_repeat('?,', count($area_ids) - 1) . '?';
-        $query = "SELECT q.*, qi.image_path 
-                  FROM " . $this->table . " q
-                  LEFT JOIN question_images qi ON q.id = qi.question_id
-                  WHERE q.area_id IN ($in) 
-                  ORDER BY RAND()";
+        
+        $query = "SELECT q.*, qi.image_data 
+                 FROM " . $this->table . " q
+                 LEFT JOIN question_images qi ON q.id = qi.question_id
+                 WHERE q.area_id IN ($in) 
+                 ORDER BY RAND()";
+                 
         $stmt = $this->conn->prepare($query);
         $stmt->execute($area_ids);
         return $stmt;
     }
 
     public function getById($id) {
-        $query = "SELECT q.*, qi.image_path 
-                  FROM " . $this->table . " q
-                  LEFT JOIN question_images qi ON q.id = qi.question_id
-                  WHERE q.id = ? LIMIT 1";
+        $query = "SELECT q.*, qi.image_data 
+                 FROM " . $this->table . " q
+                 LEFT JOIN question_images qi ON q.id = qi.question_id
+                 WHERE q.id = ? LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
-?>

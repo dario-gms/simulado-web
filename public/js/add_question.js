@@ -12,8 +12,23 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
 
         try {
-            // Criar FormData a partir do formulário
+            // Criar FormData e configurar ação
             const formData = new FormData(questionForm);
+            formData.set('action', 'add_question');
+
+            // Coletar e validar opções corretamente
+            const opcoes = {
+                A: document.querySelector('textarea[name="opcoes[A]"]').value.trim(),
+                B: document.querySelector('textarea[name="opcoes[B]"]').value.trim(),
+                C: document.querySelector('textarea[name="opcoes[C]"]').value.trim(),
+                D: document.querySelector('textarea[name="opcoes[D]"]').value.trim(),
+                E: document.querySelector('textarea[name="opcoes[E]"]').value.trim()
+            };
+
+            // Adicionar opções ao FormData
+            for (const [key, value] of Object.entries(opcoes)) {
+                formData.set(`opcoes[${key}]`, value);
+            }
 
             // Validação dos campos
             const enunciado = formData.get('enunciado').trim();
@@ -33,14 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Validar opções
-            const opcoes = {
-                A: formData.get('opcoes[A]').trim(),
-                B: formData.get('opcoes[B]').trim(),
-                C: formData.get('opcoes[C]').trim(),
-                D: formData.get('opcoes[D]').trim(),
-                E: formData.get('opcoes[E]').trim()
-            };
-
             for (const [letra, texto] of Object.entries(opcoes)) {
                 if (!texto) {
                     throw new Error(`A opção ${letra} está vazia`);
@@ -50,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Enviar para a API
             const response = await fetch('api.php', {
                 method: 'POST',
-                body: formData // Usar FormData diretamente
+                body: formData
             });
 
             const result = await response.json();

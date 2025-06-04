@@ -104,11 +104,27 @@ try {
                     exit;
                 }
             }
-            $imagem = $_FILES['question_image'] ?? null;
+
+            // Handle file upload correctly
+            $imagem = null;
+            if (isset($_FILES['question_image']) && $_FILES['question_image']['error'] === UPLOAD_ERR_OK) {
+                $imagem = $_FILES['question_image'];
+            }
+
+            // Convert options to proper array format
+            $opcoesArray = [];
+            foreach (['A', 'B', 'C', 'D', 'E'] as $letra) {
+                if (!isset($input['opcoes'][$letra])) {
+                    echo jsonResponse(false, "Opção {$letra} é obrigatória");
+                    exit;
+                }
+                $opcoesArray[$letra] = $input['opcoes'][$letra];
+            }
+
             $questionController = new QuestionController();
             $result = $questionController->addQuestion(
                 $input['enunciado'],
-                $input['opcoes'],
+                $opcoesArray,
                 $input['resposta_correta'],
                 $input['area_id'],
                 $input['explicacao'] ?? null,
