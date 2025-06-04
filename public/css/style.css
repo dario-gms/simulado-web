@@ -828,3 +828,45 @@ select {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
     }
+
+
+/* Estilos para a pré-visualização */
+#imagePreview {
+    transition: all 0.3s ease;
+}
+
+    #imagePreview:hover {
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+/* Efeito ao arrastar imagem */
+.image-upload-area {
+    border: 2px dashed #ccc;
+    width: 50%;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 15px;
+    transition: all 0.3s;
+}
+
+    .image-upload-area.dragover {
+        border-color: #4CAF50;
+        background-color: #f8f9fa;
+    }
+
+/* Melhorar visualização do input file */
+.image-upload {
+    display: block;
+    width: 50%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+

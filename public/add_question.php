@@ -34,8 +34,22 @@ $areas = $areaController->getAll();
             
             <div class="form-group">
                 <label for="questionImage">Imagem (Opcional):</label>
-                <input type="file" id="questionImage" name="question_image" accept="image/*">
-                <small>Formatos suportados: JPG, PNG, etc. A imagem será convertida para WEBP.</small>
+                <div class="image-upload-area">
+                    <p><i class="fas fa-cloud-upload-alt" style="font-size: 24px;"></i></p>
+                    <p>Arraste e solte uma imagem aqui ou clique para selecionar</p>
+                </div>
+                <input type="file" id="questionImage" name="question_image" accept="image/*" class="image-upload">
+                <small></small>
+                
+                <!-- Container para preview -->
+                <div id="imagePreviewContainer" style="margin-top: 15px; display: none;">
+                    <p>Pré-visualização:</p>
+                    <img id="imagePreview" src="#" alt="Pré-visualização da imagem" 
+                         style="max-width: 100%; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;">
+                    <button type="button" id="removeImageBtn" class="btn btn-small btn-danger" style="margin-top: 5px;">
+                        <i class="fas fa-times"></i> Remover Imagem
+                    </button>
+                </div>
             </div>
             
             <div class="form-group">
