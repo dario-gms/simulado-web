@@ -46,6 +46,14 @@ $currentQuestion = $questions[$currentIndex];
                     <?= nl2br(htmlspecialchars($currentQuestion['enunciado'])) ?>
                 </div>
                 
+                <?php if ($currentQuestion['has_image']): ?>
+                <div class="question-image">
+                    <img src="get_image.php?id=<?= $currentQuestion['id'] ?>" 
+                         alt="Imagem da questão" 
+                         style="max-width: 100%; max-height: 400px;">
+                </div>
+                <?php endif; ?>
+                
                 <div class="options">
                     <?php foreach ($currentQuestion['opcoes'] as $option): ?>
                     <div class="option">

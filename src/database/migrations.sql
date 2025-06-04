@@ -87,3 +87,15 @@ CREATE TABLE simulado_area_stats (
 );
 
 ALTER TABLE questions ADD COLUMN explicacao TEXT DEFAULT NULL;
+
+-- Adicionar coluna para controle de imagem nas questões
+ALTER TABLE questions ADD COLUMN has_image BOOLEAN DEFAULT FALSE;
+
+-- Tabela para armazenar imagens (já existe, mas vamos atualizar)
+CREATE TABLE IF NOT EXISTS question_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT NOT NULL,
+    image_data MEDIUMBLOB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);

@@ -2,7 +2,99 @@ document.addEventListener('DOMContentLoaded', () => {
     const questionForm = document.getElementById('questionForm');
     const backBtn = document.getElementById('backBtn');
     const submitBtn = questionForm.querySelector('button[type="submit"]');
+    const imageUpload = document.querySelector('.image-upload');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+    const imageUploadArea = document.querySelector('.image-upload-area');
 
+    // Formatos suportados (incluindo os novos)
+    const supportedFormats = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/bmp',
+        'image/tiff',
+        'image/heic',
+        'image/heif',
+        'image/avif'
+    ];
+
+    // Configurar eventos de drag and drop
+    imageUploadArea.addEventListener('click', () => imageUpload.click());
+    imageUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        imageUploadArea.classList.add('dragover');
+    });
+    imageUploadArea.addEventListener('dragleave', () => {
+        imageUploadArea.classList.remove('dragover');
+    });
+    imageUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        imageUploadArea.classList.remove('dragover');
+
+        if (e.dataTransfer.files.length) {
+            const file = e.dataTransfer.files[0];
+            if (validateImageFile(file)) {
+                imageUpload.files = e.dataTransfer.files;
+                const event = new Event('change');
+                imageUpload.dispatchEvent(event);
+            }
+        }
+    });
+
+    // Função para validar arquivo de imagem
+    function validateImageFile(file) {
+        // Verificar se é um tipo de imagem suportado
+        if (!supportedFormats.includes(file.type)) {
+            alert('Formato de imagem não suportado. Formatos aceitos: JPEG, PNG, GIF, WEBP, BMP, TIFF, HEIC, HEIF, AVIF');
+            return false;
+        }
+
+        // Verificar tamanho (5MB máximo)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('A imagem deve ter menos de 5MB');
+            return false;
+        }
+
+        return true;
+    }
+
+    // Configurar preview de imagem
+    imageUpload.addEventListener('change', function (e) {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+
+            if (!validateImageFile(file)) {
+                this.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.style.display = 'block';
+            }
+
+            reader.onerror = function () {
+                alert('Erro ao ler o arquivo de imagem');
+                imageUpload.value = '';
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Remover imagem
+    removeImageBtn.addEventListener('click', function () {
+        imageUpload.value = '';
+        imagePreview.src = '#';
+        imagePreviewContainer.style.display = 'none';
+    });
+
+    // Envio do formulário
     questionForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -12,49 +104,60 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
 
         try {
-            // Coletar dados do formulário
-            const formData = {
-                action: 'add_question',
-                enunciado: document.getElementById('enunciado').value.trim(),
-                opcoes: {
-                    A: document.querySelector('textarea[name="opcoes[A]"]').value.trim(),
-                    B: document.querySelector('textarea[name="opcoes[B]"]').value.trim(),
-                    C: document.querySelector('textarea[name="opcoes[C]"]').value.trim(),
-                    D: document.querySelector('textarea[name="opcoes[D]"]').value.trim(),
-                    E: document.querySelector('textarea[name="opcoes[E]"]').value.trim()
-                },
-                resposta_correta: document.getElementById('correctAnswer').value,
-                area_id: document.getElementById('area').value,
-                explicacao: document.getElementById('explicacao').value.trim()
+            // Criar FormData e configurar ação
+            const formData = new FormData(questionForm);
+            formData.set('action', 'add_question');
+
+            // Coletar e validar opções corretamente
+            const opcoes = {
+                A: document.querySelector('textarea[name="opcoes[A]"]').value.trim(),
+                B: document.querySelector('textarea[name="opcoes[B]"]').value.trim(),
+                C: document.querySelector('textarea[name="opcoes[C]"]').value.trim(),
+                D: document.querySelector('textarea[name="opcoes[D]"]').value.trim(),
+                E: document.querySelector('textarea[name="opcoes[E]"]').value.trim()
             };
 
+            // Adicionar opções ao FormData
+            for (const [key, value] of Object.entries(opcoes)) {
+                formData.set(`opcoes[${key}]`, value);
+            }
+
             // Validação dos campos
-            if (!formData.enunciado) {
+            const enunciado = formData.get('enunciado').trim();
+            const resposta_correta = formData.get('resposta_correta');
+            const area_id = formData.get('area_id');
+
+            if (!enunciado) {
                 throw new Error('O enunciado é obrigatório');
             }
 
-            if (!formData.resposta_correta) {
+            if (!resposta_correta) {
                 throw new Error('Selecione a resposta correta');
             }
 
-            if (!formData.area_id) {
+            if (!area_id) {
                 throw new Error('Selecione a área de conhecimento');
             }
 
             // Validar opções
-            for (const [letra, texto] of Object.entries(formData.opcoes)) {
+            for (const [letra, texto] of Object.entries(opcoes)) {
                 if (!texto) {
                     throw new Error(`A opção ${letra} está vazia`);
+                }
+            }
+
+            // Verificar se há imagem e se é válida
+            if (imageUpload.files.length > 0) {
+                const imageFile = imageUpload.files[0];
+                if (!validateImageFile(imageFile)) {
+                    throw new Error('Imagem inválida');
                 }
             }
 
             // Enviar para a API
             const response = await fetch('api.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
+                body: formData
             });
 
             const result = await response.json();
@@ -72,6 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 questionForm.reset();
                 submitBtn.innerHTML = originalBtnContent;
                 submitBtn.classList.remove('btn-success');
+                imagePreview.src = '#';
+                imagePreviewContainer.style.display = 'none';
+
+                // Redirecionar ou fazer outra ação se necessário
+                if (result.redirect) {
+                    window.location.href = result.redirect;
+                }
             }, 1500);
 
         } catch (error) {
