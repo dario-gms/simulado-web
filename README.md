@@ -1,50 +1,62 @@
-# 📚 Simulado para Concursos
+# 🧪 Simulado Web
 
 ## ✨ Visão Geral
 
-O **Simulado para Concursos** é uma aplicação web desenvolvida para ajudar candidatos a concursos públicos a praticar e testar seus conhecimentos. O sistema permite:
+**Simulado Web** é uma plataforma de simulados flexível e poderosa, criada para auxiliar estudantes e profissionais em diversas áreas a praticar seus conhecimentos por meio de questões objetivas. Ideal para concursos, ENEM, certificações ou treinamentos personalizados.
 
-- Criar e gerenciar áreas de conhecimento
-- Adicionar questões com múltiplas opções
-- Realizar simulados personalizados
-- Visualizar resultados detalhados
+### Funcionalidades Principais
+
+* Gerenciamento de áreas de conhecimento
+* Cadastro de questões com alternativas, imagens e explicações
+* Simulados personalizados (normal ou com respostas imediatas)
+* Controle de tempo e limite de questões
+* Histórico detalhado de desempenho
 
 ## 🛠 Tecnologias Utilizadas
 
 ### Backend
-- **PHP 8.2+** - Lógica de negócios e API
-- **MySQL** - Banco de dados relacional
-- **PDO** - Conexão com o banco de dados
+
+* **PHP 8.2+** — Lógica de aplicação e API
+* **MySQL** — Banco de dados relacional
+* **PDO** — Comunicação com o banco de forma segura
 
 ### Frontend
-- **HTML5** - Estrutura semântica
-- **CSS3** - Estilização moderna
-- **JavaScript** - Interatividade
-- **SVG** - Ícones e elementos gráficos
+
+* **HTML5** — Estrutura semântica
+* **CSS3** — Estilização moderna e responsiva
+* **JavaScript** — Interatividade e controle de UI
+* **SVG** — Ícones leves e vetoriais
 
 ### Infraestrutura
-- **XAMPP/Apache** - Servidor web local
-- **phpMyAdmin** - Gerenciamento do banco de dados
+
+* **XAMPP/Apache** — Servidor local
+* **phpMyAdmin** — Administração do banco de dados
 
 ## 🚀 Como Executar o Projeto
 
 ### Pré-requisitos
-- XAMPP ou servidor Apache com PHP 8.2+
-- MySQL 5.7+ ou MariaDB 10.3+
-- Git (opcional)
+
+* XAMPP ou Apache com PHP 8.2+
+* MySQL 5.7+ ou MariaDB 10.3+
+* Git (opcional)
 
 ### Instalação
+
 1. Clone o repositório:
+
    ```bash
    git clone https://github.com/dario-gms/simulado-web
    ```
+
 2. Configure o banco de dados:
-   - Importe o arquivo `database/migrations.sql` no phpMyAdmin
-   - Atualize as credenciais em `src/config/database.php`
 
-3. Coloque o projeto na pasta `htdocs` do XAMPP ou no diretório raiz do seu servidor web
+   * Importe `src/database/migrations.sql` no phpMyAdmin
+   * Edite `src/config/database.php` com suas credenciais
 
-4. Acesse no navegador:
+3. Mova o projeto para `htdocs` do XAMPP ou a raiz do seu servidor
+
+4. Acesse pelo navegador:
+
    ```
    http://localhost/simulado/public/
    ```
@@ -54,79 +66,125 @@ O **Simulado para Concursos** é uma aplicação web desenvolvida para ajudar ca
 ```
 simulado/
 ├── public/
+│   ├── admin/
+│   │   ├── stats.php           # Histórico detalhado dos usuários
+│   │   └── users.php           # Gerenciamento de contas
 │   ├── css/
 │   │   └── style.css
 │   ├── js/
+│   │   ├── add_question.js     # Scripts para cadastro de questões
+│   │   ├── admin.js
+│   │   ├── auth.js
 │   │   ├── main.js
-│   │   ├── simulado.js
-│   │   └── add_question.js
-│   ├── index.php
+│   │   ├── profile.js
+│   │   └── simulado.js
+│   ├── partials/
+│   │   └── menu.php            # Menu rápido para ações administrativas
+│   ├── add_question.php
 │   ├── api.php
-│   ├── simulado.php
-│   ├── resultado.php
+│   ├── config.php
+│   ├── get_image.php
+│   ├── index.php
+│   ├── login.php
 │   ├── manage_areas.php
-│   └── add_question.php
+│   ├── profile.php             # Perfil e desempenho do usuário
+│   ├── register.php
+│   ├── resultado.php
+│   ├── simulado.php
+│   └── simulado_imediato.php  # Simulado com resposta imediata
 ├── src/
 │   ├── config/
 │   │   └── database.php
 │   ├── controllers/
-│   │   ├── QuestionController.php
 │   │   ├── AreaController.php
-│   │   └── SimuladoController.php
+│   │   ├── AuthController.php
+│   │   ├── ImageController.php
+│   │   ├── QuestionController.php
+│   │   ├── SimuladoController.php
+│   │   ├── SimuladoResultsController.php
+│   │   └── UserStatsController.php
+│   ├── database/
+│   │   └── migrations.sql
 │   ├── models/
-│   │   ├── Question.php
+│   │   ├── Area.php
 │   │   ├── Option.php
-│   │   └── Area.php
-│   └── database/
-│       └── migrations.sql
+│   │   ├── Question.php
+│   │   ├── QuestionImage.php
+│   │   ├── User.php
+│   │   └── UserStats.php
 ├── vendor/
 └── .htaccess
 ```
 
-## 📋 Funcionalidades Principais
+## 🧩 Novidades e Recursos Recentes
 
-### Áreas de Conhecimento
-- 📂 Criação e gerenciamento de áreas de estudo
-- 🗂 Organização hierárquica
-- 🔄 Atualização em tempo real
+* 📊 **stats.php**: histórico completo por usuário (área, questões, acertos, percentual, data)
+* 👥 **users.php**: gerenciamento completo dos usuários e seus dados
+* 🧑 **profile.php**: painel com desempenho individual, últimos simulados, notas e erros
+* 📂 **menu.php**: menu contextual rápido para facilitar ações do administrador
+* 🖼 **Imagens nas questões**: upload via gerenciador de arquivos ou arraste
+* 🧠 **Explicações opcionais**: cada questão pode conter justificativa exibida após resposta
+* ⚡ **Simulado Imediato**: usuário recebe feedback imediato da resposta
+* 📌 **Simulado Customizado**:
 
-### Questões
-- ✏️ Adição de questões com 5 alternativas
-- ✔️ Marcação da resposta correta
-- 🏷 Associação a áreas específicas
-
-### Simulados
-- 🎯 Seleção por áreas de conhecimento
-- ⏱ Cronômetro integrado
-- 📊 Progresso em tempo real
-
-### Resultados
-- 📈 Pontuação detalhada
-- ⏱ Tempo gasto
+  * Limite de até 100 questões
+  * Cronômetro configurável — se o tempo expira, simulado é encerrado automaticamente
+  * Questões não respondidas são contabilizadas como erros
 
 ## 🎨 Design System
 
-### Cores Principais
-| Cor               | Hexadecimal |
-|-------------------|-------------|
-| Azul Primário     | `#4361ee`   |
-| Azul Secundário   | `#3f37c9`   |
-| Sucesso           | `#4cc9f0`   |
-| Perigo            | `#f72585`   |
+### Paleta de Cores
+
+| Elemento        | Cor       |
+| --------------- | --------- |
+| Azul Primário   | `#4361ee` |
+| Azul Secundário | `#3f37c9` |
+| Sucesso         | `#4cc9f0` |
+| Erro/Perigo     | `#f72585` |
 
 ### Tipografia
-- **Família Principal**: Roboto
-- **Tamanhos**:
-  - Títulos: 2.5rem
-  - Texto normal: 1rem
-  - Pequeno: 0.875rem
+
+* **Fonte**: Roboto
+* **Tamanhos**:
+
+  * Títulos: `2.5rem`
+  * Texto comum: `1rem`
+  * Pequeno: `0.875rem`
+
+## 📈 Funcionalidades
+
+### Áreas de Conhecimento
+
+* Criação, edição e exclusão de áreas
+* Associação direta com questões
+
+### Questões
+
+* Múltiplas alternativas (5)
+* Imagem opcional (JPG, PNG, GIF, SVG etc.)
+* Explicação opcional
+* Associação com área
+
+### Simulados
+
+* Escolha de áreas
+* Simulado normal ou com respostas imediatas
+* Limite de até 100 questões
+* Cronômetro (opcional)
+
+### Resultados
+
+* Correção automática
+* Percentual de acerto
+* Feedback por questão
+* Histórico de desempenho
 
 ## 🤝 Como Contribuir
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
+1. Fork o projeto
+2. Crie uma branch (`git checkout -b feature/NomeDaFeature`)
+3. Commit suas mudanças (`git commit -m "feat: adiciona nova feature"`)
+4. Push para o repositório (`git push origin feature/NomeDaFeature`)
 5. Abra um Pull Request
 
 ## 📄 Licença
@@ -139,26 +197,28 @@ Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
   <sub>Criado com ❤︎ por <a href="https://github.com/dario-gms">Dário Gomes</a></sub>
 </div>
 
-## 🎉 Screenshots
+## 📷 Screenshots
 
-1. **Página Inicial**  
- ![image](https://github.com/user-attachments/assets/c84f8b62-ae26-4782-8e3d-a17bdf418c75)
+1. **Página Inicial**
+   ![image](https://github.com/user-attachments/assets/e45cfa79-c889-4aba-88bb-aec9375fd06c)
 
-2. **Adicionar Questão**  
-  ![image](https://github.com/user-attachments/assets/df025ee2-0820-40c5-8ece-dc5e2098032f)
 
-3. **Simulado em Andamento**  
-   ![image](https://github.com/user-attachments/assets/4d731018-47a1-470b-a16e-b44a14b5b5fe)
+2. **Adicionar Questão**
+   ![image](https://github.com/user-attachments/assets/6fe5266d-f602-4b69-9bbe-be54eb4b4f71)
 
-## 🔧 Troubleshooting
+3. **Simulado em Andamento**
+   ![image](https://github.com/user-attachments/assets/ae338613-fdcb-49cb-afbb-50fc11dabcda)
 
-### Problemas comuns e soluções:
 
-1. **Erro de conexão com o banco de dados**  
-   Verifique as credenciais no arquivo `src/config/database.php`
+## ❗ Troubleshooting
 
-2. **Página não encontrada (404)**  
-   Certifique-se de que o mod_rewrite está ativado no Apache
+### Problemas comuns:
 
-3. **Ícones não aparecendo**  
-   Verifique se o caminho para os arquivos SVG está correto
+* **Erro de conexão com o banco de dados**
+  Verifique o arquivo `src/config/database.php`
+
+* **Erro 404**
+  Certifique-se de que o mod\_rewrite está ativado no Apache
+
+* **Imagens não carregam**
+  Verifique os caminhos em `get_image.php` e permissões de pastas

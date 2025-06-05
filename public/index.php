@@ -1,12 +1,24 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+session_start();
+if (empty($_SESSION['user'])) {
+    header("Location: login.php");
+    exit;
+}
 
 require_once __DIR__ . '/../src/controllers/AreaController.php';
+require_once __DIR__ . '/../src/controllers/SimuladoController.php';
 
 $areaController = new AreaController();
 $areas = $areaController->getAll();
+
+$simuladoController = new SimuladoController();
+$availableCounts = $simuladoController->getAvailableQuestionCounts();
+$countdownOptions = $simuladoController->getAvailableCountdownOptions();
+
+// Define a URL base para links
+$base_url = '/simulado/public/';
+$current_page = basename($_SERVER['PHP_SELF']);
+$is_admin = !empty($_SESSION['user']['is_admin']);
 ?>
 
 <!DOCTYPE html>
@@ -14,18 +26,23 @@ $areas = $areaController->getAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulado para Concursos</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>QuestLab</title>
+    <link rel="stylesheet" href="<?= $base_url ?>css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Inclui o menu -->
+    <?php include __DIR__ . '/partials/menu.php'; ?>
+
     <div class="container">
         <header class="hero">
-            <h1>Simulado para Concursos</h1>
-            <p>Selecione as áreas para iniciar:</p>
+            <h1>QuestLab</h1>
+            <p>Teste seus conhecimentos e prepare-se para todas as provas!</p>
         </header>
         
         <div class="card">
+            <h2>Iniciar Novo Simulado</h2>
             <form id="simuladoForm">
                 <div class="areas-list">
                     <?php foreach ($areas as $area): ?>
@@ -37,6 +54,32 @@ $areas = $areaController->getAll();
                     <?php endforeach; ?>
                 </div>
                 
+                <div class="simulado-settings">
+                    <div class="setting-group">
+                        <label for="question_count">Quantidade de Questões:</label>
+                        <select id="question_count" name="question_count" class="form-control">
+                            <?php foreach ($availableCounts as $count): ?>
+                                <option value="<?= $count ?>"><?= $count ?> questões</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label for="timer_mode">Tipo de Temporizador:</label>
+                        <select id="timer_mode" name="timer_mode" class="form-control">
+                            <?php foreach ($countdownOptions as $value => $label): ?>
+                                <option value="<?= $value ?>"><?= $label ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Seletor de modo disponível para todos os usuários -->
+                <div class="simulado-mode-selector">
+                    <button type="button" class="simulado-mode-btn active" data-mode="normal">Simulado Normal</button>
+                    <button type="button" class="simulado-mode-btn" data-mode="imediato">Respostas Imediatas</button>
+                </div>
+                
                 <div class="action-buttons">
                     <button type="submit" class="btn btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -44,27 +87,78 @@ $areas = $areaController->getAll();
                         </svg>
                         Iniciar Simulado
                     </button>
-                    <button type="button" id="addQuestionBtn" class="btn btn-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                        </svg>
-                        Adicionar Questões
-                    </button>
-                </div>
-                
-                <div class="footer">
-                    <a href="manage_areas.php" class="btn btn-secondary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
-                            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/>
-                        </svg>
-                        Gerenciar Áreas
-                    </a>
                 </div>
             </form>
         </div>
+
+        <?php if ($is_admin): ?>
+        <div class="admin-quick-stats">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3><i class="fas fa-users"></i> Usuários</h3>
+                    <div class="stat-value" id="total-users">--</div>
+                    <a href="<?= $base_url ?>admin/users.php" class="btn btn-small">Gerenciar</a>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-question-circle"></i> Questões</h3>
+                    <div class="stat-value" id="total-questions">--</div>
+                    <a href="<?= $base_url ?>add_question.php" class="btn btn-small">Adicionar</a>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-layer-group"></i> Áreas</h3>
+                    <div class="stat-value"><?= count($areas) ?></div>
+                    <a href="<?= $base_url ?>manage_areas.php" class="btn btn-small">Gerenciar</a>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 
-    <script src="js/main.js"></script>
+    <script src="<?= $base_url ?>js/main.js"></script>
+    <script>
+    // Carrega estatísticas rápidas para admin
+    <?php if ($is_admin): ?>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Carrega totais de usuários e questões
+            const responses = await Promise.all([
+                fetch('<?= $base_url ?>api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get_all_users' })
+                }),
+                fetch('<?= $base_url ?>api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get_questions_count' })
+                })
+            ]);
+
+            const [usersRes, questionsRes] = await Promise.all(responses.map(r => r.json()));
+
+            if (usersRes.success) {
+                document.getElementById('total-users').textContent = usersRes.data.users.length;
+            }
+            if (questionsRes.success) {
+                document.getElementById('total-questions').textContent = questionsRes.data.count;
+            }
+        } catch (error) {
+            console.error('Erro ao carregar estatísticas:', error);
+        }
+    });
+    <?php endif; ?>
+
+    // Seletor de modo de simulado (para todos os usuários)
+    document.addEventListener('DOMContentLoaded', () => {
+        const modeButtons = document.querySelectorAll('.simulado-mode-btn');
+        
+        modeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+    });
+    </script>
 </body>
 </html>

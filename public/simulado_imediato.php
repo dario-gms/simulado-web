@@ -16,6 +16,7 @@ if ($currentIndex >= $totalQuestions) {
 }
 
 $currentQuestion = $questions[$currentIndex];
+$startTime = $_SESSION['simulado']['start_time'] ?? time();
 $timerMode = $_SESSION['simulado']['timer_mode'] ?? 'stopwatch';
 $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
 ?>
@@ -27,6 +28,7 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulado - Questão <?= $currentIndex + 1 ?></title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .spinner {
             display: inline-block;
@@ -37,6 +39,7 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
             border-top-color: #fff;
             animation: spin 1s ease-in-out infinite;
             margin-right: 0.5rem;
+            vertical-align: middle;
         }
         
         @keyframes spin {
@@ -46,6 +49,10 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
         .btn[disabled] {
             opacity: 0.7;
             cursor: not-allowed;
+        }
+        
+        .btn-loading {
+            position: relative;
         }
     </style>
 </head>
@@ -81,24 +88,32 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
                 
                 <div class="options">
                     <?php foreach ($currentQuestion['opcoes'] as $option): ?>
-                    <div class="option">
-                        <input type="radio" name="answer" id="option_<?= $option['id'] ?>" 
+                    <div class="option" id="option_<?= $option['letra'] ?>">
+                        <input type="radio" name="answer" id="option_input_<?= $option['letra'] ?>" 
                                value="<?= $option['letra'] ?>">
-                        <label for="option_<?= $option['id'] ?>">
+                        <label for="option_input_<?= $option['letra'] ?>">
                             <span class="option-letter"><?= $option['letra'] ?></span>
                             <span class="option-text"><?= htmlspecialchars($option['texto']) ?></span>
                         </label>
                     </div>
                     <?php endforeach; ?>
                 </div>
+
+                <?php if (!empty($currentQuestion['explicacao'])): ?>
+                <div class="explanation-container" id="explanationContainer" style="display: none;">
+                    <div class="explanation-title">Explicação:</div>
+                    <div class="explanation-text"><?= nl2br(htmlspecialchars($currentQuestion['explicacao'])) ?></div>
+                </div>
+                <?php endif; ?>
             </form>
         </main>
 
         <footer class="simulado-footer">
+            <button id="checkAnswerBtn" class="btn btn-primary">Verificar Resposta</button>
             <?php if ($currentIndex < $totalQuestions - 1): ?>
-                <button id="nextBtn" class="btn btn-primary">Próxima Questão</button>
+                <button id="nextBtn" class="btn btn-primary" style="display: none;">Próxima Questão</button>
             <?php else: ?>
-                <button id="finishBtn" class="btn btn-finish">Finalizar Simulado</button>
+                <button id="finishBtn" class="btn btn-finish" style="display: none;">Finalizar Simulado</button>
             <?php endif; ?>
         </footer>
     </div>
@@ -115,7 +130,7 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
             
             if (timerMode === 'stopwatch') {
                 // Modo cronômetro
-                const elapsed = now - <?= $_SESSION['simulado']['start_time'] ?? time() ?>;
+                const elapsed = now - <?= $startTime ?>;
                 const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
                 const seconds = (elapsed % 60).toString().padStart(2, '0');
                 timerElement.textContent = `${minutes}:${seconds}`;
@@ -144,15 +159,13 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
 
         async function finishSimulado() {
             try {
-                // Mostrar estado de carregamento
                 const finishBtn = document.getElementById('finishBtn');
                 if (finishBtn) {
                     finishBtn.disabled = true;
                     finishBtn.innerHTML = '<span class="spinner"></span> Finalizando...';
                 }
 
-                // Finaliza o simulado
-                const finishResponse = await fetch('api.php', {
+                const response = await fetch('api.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -163,16 +176,16 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
                 });
 
                 // Verifica se a resposta é JSON
-                const contentType = finishResponse.headers.get('content-type');
+                const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
-                    const text = await finishResponse.text();
+                    const text = await response.text();
                     throw new Error(`Resposta inválida do servidor: ${text.substring(0, 100)}`);
                 }
 
-                const finishData = await finishResponse.json();
+                const result = await response.json();
                 
-                if (!finishResponse.ok || !finishData.success) {
-                    throw new Error(finishData.message || 'Erro ao finalizar simulado');
+                if (!result.success) {
+                    throw new Error(result.message || 'Erro ao finalizar simulado');
                 }
 
                 window.location.href = 'resultado.php';
@@ -180,7 +193,6 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
                 console.error('Erro:', error);
                 alert('Erro ao finalizar: ' + error.message);
                 
-                // Restaurar botão
                 const finishBtn = document.getElementById('finishBtn');
                 if (finishBtn) {
                     finishBtn.disabled = false;
@@ -189,22 +201,25 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
             }
         }
 
-        // Navegação
-        document.getElementById('nextBtn')?.addEventListener('click', async () => {
+        // Verificação de resposta
+        document.getElementById('checkAnswerBtn').addEventListener('click', async function() {
             const selectedOption = document.querySelector('input[name="answer"]:checked');
             
             if (!selectedOption) {
-                alert('Selecione uma resposta antes de continuar');
+                alert('Por favor, selecione uma resposta antes de verificar.');
                 return;
             }
 
-            try {
-                const nextBtn = document.getElementById('nextBtn');
-                if (nextBtn) {
-                    nextBtn.disabled = true;
-                    nextBtn.innerHTML = '<span class="spinner"></span> Carregando...';
-                }
+            const checkBtn = this;
+            const originalText = checkBtn.innerHTML;
+            
+            // Mostrar estado de carregamento
+            checkBtn.classList.add('btn-loading');
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = '<span class="spinner"></span> Processando...';
 
+            try {
+                // 1. Enviar resposta para o servidor
                 const response = await fetch('api.php', {
                     method: 'POST',
                     headers: {
@@ -217,69 +232,70 @@ $countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
                     })
                 });
 
-                const data = await response.json();
-                
-                if (!response.ok || !data.success) {
-                    throw new Error(data.message || 'Erro ao salvar resposta');
+                // Verificar se a resposta é JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(`Resposta inválida do servidor: ${text.substring(0, 100)}`);
                 }
 
-                window.location.href = `simulado.php?index=<?= $currentIndex + 1 ?>`;
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.message || 'Erro ao processar resposta');
+                }
+
+                // 2. Processar visualização
+                const selectedValue = selectedOption.value;
+                const correctAnswer = '<?= $currentQuestion['resposta_correta'] ?>';
+                const isCorrect = selectedValue === correctAnswer;
+
+                // Remover estilos anteriores
+                document.querySelectorAll('.option').forEach(opt => {
+                    opt.classList.remove('correct-answer', 'wrong-answer', 'show-correct-answer');
+                });
+
+                // Marcar resposta do usuário
+                const userOption = document.getElementById(`option_${selectedValue}`);
+                userOption.classList.add(isCorrect ? 'correct-answer' : 'wrong-answer');
+
+                // Marcar resposta correta se necessário
+                if (!isCorrect) {
+                    const correctOption = document.getElementById(`option_${correctAnswer}`);
+                    correctOption.classList.add('show-correct-answer');
+                }
+
+                // Mostrar explicação se existir
+                const explanation = document.getElementById('explanationContainer');
+                if (explanation) {
+                    explanation.style.display = 'block';
+                }
+
+                // 3. Atualizar interface
+                checkBtn.style.display = 'none';
+                const nextBtn = document.getElementById('nextBtn');
+                const finishBtn = document.getElementById('finishBtn');
+                
+                if (nextBtn) nextBtn.style.display = 'inline-block';
+                if (finishBtn) finishBtn.style.display = 'inline-block';
+
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao avançar: ' + error.message);
-                
-                const nextBtn = document.getElementById('nextBtn');
-                if (nextBtn) {
-                    nextBtn.disabled = false;
-                    nextBtn.innerHTML = 'Próxima Questão';
-                }
+                alert(error.message);
+            } finally {
+                // Restaurar botão
+                checkBtn.classList.remove('btn-loading');
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = originalText;
             }
         });
 
+        // Navegação entre questões
+        document.getElementById('nextBtn')?.addEventListener('click', () => {
+            window.location.href = `simulado_imediato.php?index=<?= $currentIndex + 1 ?>`;
+        });
+
         document.getElementById('finishBtn')?.addEventListener('click', async () => {
-            const selectedOption = document.querySelector('input[name="answer"]:checked');
-            
-            if (!selectedOption) {
-                alert('Selecione uma resposta antes de finalizar');
-                return;
-            }
-
-            try {
-                const finishBtn = document.getElementById('finishBtn');
-                if (finishBtn) {
-                    finishBtn.disabled = true;
-                    finishBtn.innerHTML = '<span class="spinner"></span> Salvando...';
-                }
-
-                const response = await fetch('api.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'submit_answer',
-                        question_id: document.querySelector('input[name="question_id"]').value,
-                        answer: selectedOption.value
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (!response.ok || !data.success) {
-                    throw new Error(data.message || 'Erro ao salvar resposta');
-                }
-
-                await finishSimulado();
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao finalizar: ' + error.message);
-                
-                const finishBtn = document.getElementById('finishBtn');
-                if (finishBtn) {
-                    finishBtn.disabled = false;
-                    finishBtn.innerHTML = 'Finalizar Simulado';
-                }
-            }
+            await finishSimulado();
         });
     </script>
 </body>

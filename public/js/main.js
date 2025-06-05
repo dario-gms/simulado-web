@@ -1,16 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const simuladoForm = document.getElementById('simuladoForm');
-    const addQuestionBtn = document.getElementById('addQuestionBtn');
-    const manageAreasBtn = document.getElementById('manageAreasBtn');
+    const baseUrl = window.location.pathname.includes('/admin/') ? '../' : '';
 
-    // Navega��o
-    addQuestionBtn?.addEventListener('click', () => {
-        window.location.href = 'add_question.php';
-    });
-
-    manageAreasBtn?.addEventListener('click', () => {
-        window.location.href = 'manage_areas.php';
-    });
+    // Elementos do seletor de modo (se existirem)
+    const modeSelector = document.querySelector('.simulado-mode-selector');
+    const modeButtons = document.querySelectorAll('.simulado-mode-btn');
 
     // Iniciar Simulado
     simuladoForm?.addEventListener('submit', async (e) => {
@@ -21,19 +15,34 @@ document.addEventListener('DOMContentLoaded', () => {
         ).map(input => parseInt(input.value));
 
         if (areas.length === 0) {
-            alert('Selecione pelo menos uma �rea!');
+            alert('Selecione pelo menos uma área!');
             return;
         }
 
+        // Verifica o modo ativo
+        const activeModeBtn = document.querySelector('.simulado-mode-btn.active');
+        const immediateMode = activeModeBtn && activeModeBtn.dataset.mode === 'imediato';
+
+        // Obtém configurações adicionais
+        const questionCount = document.getElementById('question_count').value;
+        const timerMode = document.getElementById('timer_mode').value;
+
         try {
-            const response = await fetch('http://localhost/simulado/public/api.php', {
+            const submitBtn = simuladoForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Preparando...';
+
+            const response = await fetch(`${baseUrl}api.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     action: 'start_simulado',
-                    areas: areas
+                    areas: areas,
+                    immediate_mode: immediateMode,
+                    question_count: questionCount,
+                    timer_mode: timerMode
                 })
             });
 
@@ -43,10 +52,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.message || 'Erro ao iniciar simulado');
             }
 
-            window.location.href = `simulado.php?index=0`;
+            // Redireciona para a página correta baseada no modo
+            const targetPage = immediateMode ? 'simulado_imediato.php' : 'simulado.php';
+            window.location.href = `${baseUrl}${targetPage}?index=0`;
+
         } catch (error) {
             console.error('Erro:', error);
             alert(error.message);
+            const submitBtn = simuladoForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Iniciar Simulado';
+            }
         }
     });
+
+    // Lógica para o seletor de modo (se existir na página)
+    if (modeButtons.length > 0) {
+        modeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+    }
+
+    // Verificar autenticação (código permanece o mesmo)
+    async function checkAuth() {
+        try {
+            const response = await fetch(`${baseUrl}api.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'check_auth'
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                window.location.href = `${baseUrl}login.php`;
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            window.location.href = `${baseUrl}login.php`;
+        }
+    }
+
+    checkAuth();
 });
+
+const modeButtons = document.querySelectorAll('.simulado-mode-btn');
+if (modeButtons.length > 0) {
+    modeButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            modeButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        });
+    });
+}
