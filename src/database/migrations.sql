@@ -99,3 +99,7 @@ CREATE TABLE IF NOT EXISTS question_images (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );
+
+ALTER TABLE simulado_results ADD COLUMN question_count INT DEFAULT 10;
+ALTER TABLE simulado_results ADD COLUMN timer_mode VARCHAR(20) DEFAULT 'stopwatch';
+ALTER TABLE simulado_results ADD COLUMN countdown_duration INT DEFAULT NULL;

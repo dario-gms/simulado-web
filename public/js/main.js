@@ -23,6 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeModeBtn = document.querySelector('.simulado-mode-btn.active');
         const immediateMode = activeModeBtn && activeModeBtn.dataset.mode === 'imediato';
 
+        // Obtém configurações adicionais
+        const questionCount = document.getElementById('question_count').value;
+        const timerMode = document.getElementById('timer_mode').value;
+
         try {
             const submitBtn = simuladoForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
@@ -36,7 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     action: 'start_simulado',
                     areas: areas,
-                    immediate_mode: immediateMode
+                    immediate_mode: immediateMode,
+                    question_count: questionCount,
+                    timer_mode: timerMode
                 })
             });
 

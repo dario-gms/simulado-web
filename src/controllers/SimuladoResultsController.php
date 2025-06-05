@@ -9,20 +9,25 @@ class SimuladoResultsController {
         $this->db = $database->getConnection();
     }
 
-    public function saveResult($user_id, $areas, $total_questions, $correct_answers, $time_spent, $area_stats) {
+    public function saveResult($user_id, $areas, $total_questions, $correct_answers, $time_spent, $area_stats, $question_count, $timer_mode, $countdown_duration = null) {
         try {
             $this->db->beginTransaction();
 
             // Salva o resultado geral do simulado
             $query = "INSERT INTO simulado_results 
-                      (user_id, areas, total_questions, correct_answers, time_spent)
-                      VALUES (:user_id, :areas, :total_questions, :correct_answers, :time_spent)";
+                      (user_id, areas, total_questions, correct_answers, time_spent, 
+                       question_count, timer_mode, countdown_duration)
+                      VALUES (:user_id, :areas, :total_questions, :correct_answers, :time_spent,
+                              :question_count, :timer_mode, :countdown_duration)";
             $stmt = $this->db->prepare($query);
             $stmt->bindParam(":user_id", $user_id);
             $stmt->bindParam(":areas", json_encode($areas));
             $stmt->bindParam(":total_questions", $total_questions);
             $stmt->bindParam(":correct_answers", $correct_answers);
             $stmt->bindParam(":time_spent", $time_spent);
+            $stmt->bindParam(":question_count", $question_count);
+            $stmt->bindParam(":timer_mode", $timer_mode);
+            $stmt->bindParam(":countdown_duration", $countdown_duration);
             $stmt->execute();
             
             $simulado_id = $this->db->lastInsertId();

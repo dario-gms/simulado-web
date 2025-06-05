@@ -18,6 +18,11 @@ $areaNames = [];
 foreach ($allAreas as $area) {
     $areaNames[$area['id']] = $area['nome'];
 }
+
+// Configurações do simulado
+$questionCount = $result['question_count'] ?? 10;
+$timerMode = $result['timer_mode'] ?? 'stopwatch';
+$countdownDuration = $result['countdown_duration'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -31,6 +36,19 @@ foreach ($allAreas as $area) {
 <body>
     <div class="container">
         <h1 class="result-title">Resultado do Simulado</h1>
+        
+        <div class="simulado-settings-info">
+            <div class="setting-info">
+                <span class="setting-label">Questões:</span>
+                <span class="setting-value"><?= $questionCount ?></span>
+            </div>
+            <div class="setting-info">
+                <span class="setting-label">Temporizador:</span>
+                <span class="setting-value">
+                    <?= $timerMode === 'stopwatch' ? 'Cronômetro' : 'Contagem regressiva (' . $countdownDuration . ' min)' ?>
+                </span>
+            </div>
+        </div>
         
         <div class="result-summary">
             <div class="result-card">
@@ -64,7 +82,7 @@ foreach ($allAreas as $area) {
 
         <div class="actions">
             <a href="profile.php" class="btn btn-primary">Ver Meu Histórico</a>
-            <a href="profile.php" class="btn btn-secondary">Novo Simulado</a>
+            <a href="index.php" class="btn btn-secondary">Novo Simulado</a>
         </div>
     </div>
 </body>

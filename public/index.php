@@ -6,9 +6,14 @@ if (empty($_SESSION['user'])) {
 }
 
 require_once __DIR__ . '/../src/controllers/AreaController.php';
+require_once __DIR__ . '/../src/controllers/SimuladoController.php';
 
 $areaController = new AreaController();
 $areas = $areaController->getAll();
+
+$simuladoController = new SimuladoController();
+$availableCounts = $simuladoController->getAvailableQuestionCounts();
+$countdownOptions = $simuladoController->getAvailableCountdownOptions();
 
 // Define a URL base para links
 $base_url = '/simulado/public/';
@@ -47,6 +52,26 @@ $is_admin = !empty($_SESSION['user']['is_admin']);
                         <label for="area-<?= $area['id'] ?>"><?= htmlspecialchars($area['nome']) ?></label>
                     </div>
                     <?php endforeach; ?>
+                </div>
+                
+                <div class="simulado-settings">
+                    <div class="setting-group">
+                        <label for="question_count">Quantidade de Questões:</label>
+                        <select id="question_count" name="question_count" class="form-control">
+                            <?php foreach ($availableCounts as $count): ?>
+                                <option value="<?= $count ?>"><?= $count ?> questões</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label for="timer_mode">Tipo de Temporizador:</label>
+                        <select id="timer_mode" name="timer_mode" class="form-control">
+                            <?php foreach ($countdownOptions as $value => $label): ?>
+                                <option value="<?= $value ?>"><?= $label ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
                 
                 <!-- Seletor de modo disponível para todos os usuários -->
