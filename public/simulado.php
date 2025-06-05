@@ -16,6 +16,8 @@ if ($currentIndex >= $totalQuestions) {
 }
 
 $currentQuestion = $questions[$currentIndex];
+$timerMode = $_SESSION['simulado']['timer_mode'] ?? 'stopwatch';
+$countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -25,6 +27,27 @@ $currentQuestion = $questions[$currentIndex];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulado - Questão <?= $currentIndex + 1 ?></title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn[disabled] {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -34,7 +57,9 @@ $currentQuestion = $questions[$currentIndex];
             </div>
             <div class="header-info">
                 <span>Questão <?= $currentIndex + 1 ?> de <?= $totalQuestions ?></span>
-                <div class="timer" id="timer">00:00</div>
+                <div class="timer" id="timer">
+                    <?= $timerMode === 'stopwatch' ? '00:00' : '--:--' ?>
+                </div>
             </div>
         </header>
 
@@ -79,17 +104,90 @@ $currentQuestion = $questions[$currentIndex];
     </div>
 
     <script>
-        // Timer
-        const startTime = <?= $_SESSION['simulado']['start_time'] ?? time() ?>;
+        // Configuração do timer
+        const timerMode = '<?= $timerMode ?>';
+        const countdownEnd = <?= $countdownEnd ?? 'null' ?>;
+        let timerInterval;
+
         function updateTimer() {
             const now = Math.floor(Date.now() / 1000);
-            const elapsed = now - startTime;
-            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const seconds = (elapsed % 60).toString().padStart(2, '0');
-            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            const timerElement = document.getElementById('timer');
+            
+            if (timerMode === 'stopwatch') {
+                // Modo cronômetro
+                const elapsed = now - <?= $_SESSION['simulado']['start_time'] ?? time() ?>;
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                timerElement.textContent = `${minutes}:${seconds}`;
+            } else if (countdownEnd) {
+                // Modo contagem regressiva
+                const remaining = countdownEnd - now;
+                
+                if (remaining <= 0) {
+                    // Tempo esgotado - finalizar simulado automaticamente
+                    clearInterval(timerInterval);
+                    timerElement.textContent = '00:00';
+                    alert('O tempo acabou! O simulado será finalizado automaticamente.');
+                    finishSimulado();
+                    return;
+                }
+                
+                const minutes = Math.floor(remaining / 60).toString().padStart(2, '0');
+                const seconds = (remaining % 60).toString().padStart(2, '0');
+                timerElement.textContent = `${minutes}:${seconds}`;
+            }
         }
-        setInterval(updateTimer, 1000);
+
+        // Iniciar timer
         updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+
+        async function finishSimulado() {
+            try {
+                // Mostrar estado de carregamento
+                const finishBtn = document.getElementById('finishBtn');
+                if (finishBtn) {
+                    finishBtn.disabled = true;
+                    finishBtn.innerHTML = '<span class="spinner"></span> Finalizando...';
+                }
+
+                // Finaliza o simulado
+                const finishResponse = await fetch('api.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'finish_simulado'
+                    })
+                });
+
+                // Verifica se a resposta é JSON
+                const contentType = finishResponse.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await finishResponse.text();
+                    throw new Error(`Resposta inválida do servidor: ${text.substring(0, 100)}`);
+                }
+
+                const finishData = await finishResponse.json();
+                
+                if (!finishResponse.ok || !finishData.success) {
+                    throw new Error(finishData.message || 'Erro ao finalizar simulado');
+                }
+
+                window.location.href = 'resultado.php';
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao finalizar: ' + error.message);
+                
+                // Restaurar botão
+                const finishBtn = document.getElementById('finishBtn');
+                if (finishBtn) {
+                    finishBtn.disabled = false;
+                    finishBtn.innerHTML = 'Finalizar Simulado';
+                }
+            }
+        }
 
         // Navegação
         document.getElementById('nextBtn')?.addEventListener('click', async () => {
@@ -101,6 +199,12 @@ $currentQuestion = $questions[$currentIndex];
             }
 
             try {
+                const nextBtn = document.getElementById('nextBtn');
+                if (nextBtn) {
+                    nextBtn.disabled = true;
+                    nextBtn.innerHTML = '<span class="spinner"></span> Carregando...';
+                }
+
                 const response = await fetch('api.php', {
                     method: 'POST',
                     headers: {
@@ -123,6 +227,12 @@ $currentQuestion = $questions[$currentIndex];
             } catch (error) {
                 console.error('Erro:', error);
                 alert('Erro ao avançar: ' + error.message);
+                
+                const nextBtn = document.getElementById('nextBtn');
+                if (nextBtn) {
+                    nextBtn.disabled = false;
+                    nextBtn.innerHTML = 'Próxima Questão';
+                }
             }
         });
 
@@ -135,6 +245,12 @@ $currentQuestion = $questions[$currentIndex];
             }
 
             try {
+                const finishBtn = document.getElementById('finishBtn');
+                if (finishBtn) {
+                    finishBtn.disabled = true;
+                    finishBtn.innerHTML = '<span class="spinner"></span> Salvando...';
+                }
+
                 const response = await fetch('api.php', {
                     method: 'POST',
                     headers: {
@@ -153,27 +269,16 @@ $currentQuestion = $questions[$currentIndex];
                     throw new Error(data.message || 'Erro ao salvar resposta');
                 }
 
-                // Finaliza o simulado
-                const finishResponse = await fetch('api.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'finish_simulado'
-                    })
-                });
-
-                const finishData = await finishResponse.json();
-                
-                if (!finishResponse.ok || !finishData.success) {
-                    throw new Error(finishData.message || 'Erro ao finalizar simulado');
-                }
-
-                window.location.href = 'resultado.php';
+                await finishSimulado();
             } catch (error) {
                 console.error('Erro:', error);
                 alert('Erro ao finalizar: ' + error.message);
+                
+                const finishBtn = document.getElementById('finishBtn');
+                if (finishBtn) {
+                    finishBtn.disabled = false;
+                    finishBtn.innerHTML = 'Finalizar Simulado';
+                }
             }
         });
     </script>

@@ -17,6 +17,8 @@ if ($currentIndex >= $totalQuestions) {
 
 $currentQuestion = $questions[$currentIndex];
 $startTime = $_SESSION['simulado']['start_time'] ?? time();
+$timerMode = $_SESSION['simulado']['timer_mode'] ?? 'stopwatch';
+$countdownEnd = $_SESSION['simulado']['countdown_end'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -27,6 +29,32 @@ $startTime = $_SESSION['simulado']['start_time'] ?? time();
     <title>Simulado - Questão <?= $currentIndex + 1 ?></title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn[disabled] {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .btn-loading {
+            position: relative;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -36,7 +64,9 @@ $startTime = $_SESSION['simulado']['start_time'] ?? time();
             </div>
             <div class="header-info">
                 <span>Questão <?= $currentIndex + 1 ?> de <?= $totalQuestions ?></span>
-                <div class="timer" id="timer">00:00</div>
+                <div class="timer" id="timer">
+                    <?= $timerMode === 'stopwatch' ? '00:00' : '--:--' ?>
+                </div>
             </div>
         </header>
 
@@ -89,22 +119,89 @@ $startTime = $_SESSION['simulado']['start_time'] ?? time();
     </div>
 
     <script>
-        // Timer - Solução definitiva
-        const startTimestamp = <?= $startTime ?>;
-        
+        // Configuração do timer
+        const timerMode = '<?= $timerMode ?>';
+        const countdownEnd = <?= $countdownEnd ?? 'null' ?>;
+        let timerInterval;
+
         function updateTimer() {
             const now = Math.floor(Date.now() / 1000);
-            const elapsedSeconds = now - startTimestamp;
-            const minutes = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
-            const seconds = (elapsedSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            const timerElement = document.getElementById('timer');
+            
+            if (timerMode === 'stopwatch') {
+                // Modo cronômetro
+                const elapsed = now - <?= $startTime ?>;
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                timerElement.textContent = `${minutes}:${seconds}`;
+            } else if (countdownEnd) {
+                // Modo contagem regressiva
+                const remaining = countdownEnd - now;
+                
+                if (remaining <= 0) {
+                    // Tempo esgotado - finalizar simulado automaticamente
+                    clearInterval(timerInterval);
+                    timerElement.textContent = '00:00';
+                    alert('O tempo acabou! O simulado será finalizado automaticamente.');
+                    finishSimulado();
+                    return;
+                }
+                
+                const minutes = Math.floor(remaining / 60).toString().padStart(2, '0');
+                const seconds = (remaining % 60).toString().padStart(2, '0');
+                timerElement.textContent = `${minutes}:${seconds}`;
+            }
         }
-        
-        // Iniciar timer imediatamente e atualizar a cada segundo
-        updateTimer();
-        setInterval(updateTimer, 1000);
 
-        // Verificação de resposta - Solução completa
+        // Iniciar timer
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+
+        async function finishSimulado() {
+            try {
+                const finishBtn = document.getElementById('finishBtn');
+                if (finishBtn) {
+                    finishBtn.disabled = true;
+                    finishBtn.innerHTML = '<span class="spinner"></span> Finalizando...';
+                }
+
+                const response = await fetch('api.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'finish_simulado'
+                    })
+                });
+
+                // Verifica se a resposta é JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(`Resposta inválida do servidor: ${text.substring(0, 100)}`);
+                }
+
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Erro ao finalizar simulado');
+                }
+
+                window.location.href = 'resultado.php';
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao finalizar: ' + error.message);
+                
+                const finishBtn = document.getElementById('finishBtn');
+                if (finishBtn) {
+                    finishBtn.disabled = false;
+                    finishBtn.innerHTML = 'Finalizar Simulado';
+                }
+            }
+        }
+
+        // Verificação de resposta
         document.getElementById('checkAnswerBtn').addEventListener('click', async function() {
             const selectedOption = document.querySelector('input[name="answer"]:checked');
             
@@ -119,7 +216,7 @@ $startTime = $_SESSION['simulado']['start_time'] ?? time();
             // Mostrar estado de carregamento
             checkBtn.classList.add('btn-loading');
             checkBtn.disabled = true;
-            checkBtn.innerHTML = 'Processando...';
+            checkBtn.innerHTML = '<span class="spinner"></span> Processando...';
 
             try {
                 // 1. Enviar resposta para o servidor
@@ -135,8 +232,11 @@ $startTime = $_SESSION['simulado']['start_time'] ?? time();
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error('Erro na comunicação com o servidor');
+                // Verificar se a resposta é JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(`Resposta inválida do servidor: ${text.substring(0, 100)}`);
                 }
 
                 const result = await response.json();
@@ -195,28 +295,7 @@ $startTime = $_SESSION['simulado']['start_time'] ?? time();
         });
 
         document.getElementById('finishBtn')?.addEventListener('click', async () => {
-            try {
-                const response = await fetch('api.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'finish_simulado'
-                    })
-                });
-
-                const result = await response.json();
-                
-                if (!result.success) {
-                    throw new Error(result.message || 'Erro ao finalizar simulado');
-                }
-
-                window.location.href = 'resultado.php';
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao finalizar: ' + error.message);
-            }
+            await finishSimulado();
         });
     </script>
 </body>
